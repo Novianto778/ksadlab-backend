@@ -1,0 +1,14 @@
+node_modules
+
+coverage
+
+dist
+build
+
+.DS_Store
+.package-lock.json
+
+.vscode
+
+.env
+.env.local
