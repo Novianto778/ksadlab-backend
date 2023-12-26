@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import verifyJWT from '../middleware/verifyJWT'
-import { authRouter } from '../modules'
+import { authRouter, uploadRouter } from '../modules'
 import { errorHandling, notFound } from '../utils/errors'
 
 const app = Router()
 app.use('/api/auth', authRouter)
+app.use('/api/upload', uploadRouter)
 
 // verify token
 app.use(verifyJWT)
