@@ -7,16 +7,169 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator zod {
+  provider                 = "zod-prisma"
+  output                   = "./zod" // (default) the directory where generated zod schemas will be saved
+
+  relationModel            = true // (default) Create and export both plain and related models.
+  // relationModel         = "default" // Do not export model without relations.
+  // relationModel         = false // Do not generate related model
+
+  modelCase                = "PascalCase" // (default) Output models using pascal case (ex. UserModel, PostModel)
+  // modelCase             = "camelCase" // Output models using camel case (ex. userModel, postModel)
+
+  modelSuffix              = "Model" // (default) Suffix to apply to your prisma models when naming Zod schemas
+
+  // useDecimalJs          = false // (default) represent the prisma Decimal type using as a JS number
+  useDecimalJs             = true // represent the prisma Decimal type using Decimal.js (as Prisma does)
+
+  imports                  = null // (default) will import the referenced file in generated schemas to be used via imports.someExportedVariable
+
+  // https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
+  prismaJsonNullability    = true // (default) uses prisma's scheme for JSON field nullability
+  // prismaJsonNullability = false // allows null assignment to optional JSON fields
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model User {
-  user_id    String   @id @unique @default(uuid())
-  email      String   @unique
-  nama       String   @default("")
-  password   String
-  role       String   @default("student")
-  level      Int      @default(0)
-  point      Int      @default(0)
-  angkatan   Int      @default(2020)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  user_id        String           @id @default(uuid()) @db.Uuid
+  email          String           @db.VarChar(255) @unique
+  nama           String           @db.VarChar(255)
+  password       String           @db.VarChar(255)
+  role           String           @db.VarChar(255)
+  level          Int              @db.SmallInt
+  angkatan       Int              @db.SmallInt
+  created_at     DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?        @default(now()) @updatedAt @db.Timetz(6)
+  comment        Comment[]
+  course_progress CourseProgress[]
+  post           Post[]
+  user_assignment UserAssignment[]
+  user_note       UserNote[]
+}
+
+model Assignment {
+  assignment_id       String             @id @db.Uuid @default(uuid())
+  title               String             @db.VarChar(255)
+  description         String?            @db.VarChar(255)
+  start_date          DateTime           @db.Timestamp(6)
+  due_date            DateTime           @db.Timestamp(6)
+  assignment_task_url String             @db.VarChar(255)
+  assignment_module    AssignmentModule[]
+  user_assignment      UserAssignment[]
+}
+
+model AssignmentModule {
+  assignment_id    String       @db.Uuid
+  course_module_id String       @db.Uuid
+  assignment       Assignment   @relation(fields: [assignment_id], references: [assignment_id], onDelete: NoAction, onUpdate: NoAction)
+  course_module     CourseModule @relation(fields: [course_module_id], references: [course_module_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([assignment_id, course_module_id])
+}
+
+model Comment {
+  comment_id    String    @id @db.Uuid @default(uuid())
+  content       String
+  user_id       String    @db.Uuid
+  post_id       String    @db.Uuid
+  parent_id     String?   @db.Uuid
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  comment       Comment?  @relation("CommentToComment", fields: [parent_id], references: [comment_id], onDelete: NoAction, onUpdate: NoAction)
+  other_Comment Comment[] @relation("CommentToComment")
+  post          Post      @relation(fields: [post_id], references: [post_id], onDelete: NoAction, onUpdate: NoAction)
+  user          User      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Course {
+  course_id       String            @id @db.Uuid @default(uuid())
+  title           String            @db.VarChar(255)
+  description     String
+  level           Int               @db.SmallInt
+  cover           String?           @db.VarChar(255)
+  course_module    CourseModule[]
+  course_type CourseTypePivot[]
+}
+
+model CourseModule {
+  course_module_id String             @id @db.Uuid @default(uuid())
+  module_title     String             @db.VarChar(255)
+  order_level      Int                @db.SmallInt
+  course_id        String             @db.Uuid
+  assignment_module AssignmentModule[]
+  course           Course             @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction)
+  course_progress   CourseProgress[]
+  course_submodule  CourseSubmodule[]
+}
+
+model CourseProgress {
+  progress_id         String          @id @db.Uuid @default(uuid())
+  completed_at        DateTime?       @db.Timestamp(6)
+  course_module_id    String          @db.Uuid
+  course_submodule_id String          @db.Uuid
+  user_id             String          @db.Uuid
+  course_module        CourseModule    @relation(fields: [course_module_id], references: [course_module_id], onDelete: NoAction, onUpdate: NoAction)
+  course_submodule     CourseSubmodule @relation(fields: [course_submodule_id], references: [course_submodule_id], onDelete: NoAction, onUpdate: NoAction)
+  user                User            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CourseSubmodule {
+  course_submodule_id String           @id @db.Uuid @default(uuid())
+  submodule_title     String           @db.VarChar(255)
+  submodule_type      String           @db.VarChar(255)
+  module_url          String           @db.VarChar(255)
+  order_level         Int              @db.SmallInt
+  course_module_id    String           @db.Uuid
+  course_progress      CourseProgress[]
+  course_module        CourseModule     @relation(fields: [course_module_id], references: [course_module_id], onDelete: NoAction, onUpdate: NoAction)
+  user_note            UserNote[]
+}
+
+model CourseType {
+  course_type_id  Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  course_type CourseTypePivot[]
+}
+
+model CourseTypePivot {
+  course_type_id Int        
+  course_id      String     @db.Uuid
+  course         Course     @relation(fields: [course_id], references: [course_id], onDelete: NoAction, onUpdate: NoAction)
+  type           CourseType @relation(fields: [course_type_id], references: [course_type_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([course_type_id, course_id])
+}
+
+model Post {
+  post_id    String    @id @db.Uuid @default(uuid())
+  title      String    @db.VarChar(255)
+  content    String
+  cover      String?   @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  user_id    String    @db.Uuid
+  comment    Comment[]
+  user       User      @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model UserAssignment {
+  user_id           String     @db.Uuid
+  assignment_id     String     @db.Uuid
+  completion_status Boolean?   @default(false)
+  submission_date   DateTime?  @db.Timestamp(6)
+  grade             Int?       @default(0) @db.SmallInt
+  assignment        Assignment @relation(fields: [assignment_id], references: [assignment_id], onDelete: NoAction, onUpdate: NoAction)
+  user              User       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, assignment_id])
+}
+
+model UserNote {
+  user_id             String          @db.Uuid
+  course_submodule_id String          @db.Uuid
+  content             String
+  created_at          DateTime?       @default(now()) @db.Timestamptz(6)
+  course_submodule     CourseSubmodule @relation(fields: [course_submodule_id], references: [course_submodule_id], onDelete: NoAction, onUpdate: NoAction)
+  user                User            @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, course_submodule_id])
 }

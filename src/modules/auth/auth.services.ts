@@ -1,4 +1,4 @@
-import { type UserType } from '../../typings/auth.types'
+import { type LoginSchemaType, type UserType } from '../../typings/auth.types'
 import prisma from '../../utils/db'
 
 export const createUser = async (payload: UserType): Promise<UserType> => {
@@ -10,7 +10,7 @@ export const createUser = async (payload: UserType): Promise<UserType> => {
   return data
 }
 
-export const userLogin = async (payload: UserType): Promise<UserType | null> => {
+export const userLogin = async (payload: LoginSchemaType): Promise<UserType | null> => {
   const data = await prisma.user.findUnique({
     where: {
       email: payload.email,

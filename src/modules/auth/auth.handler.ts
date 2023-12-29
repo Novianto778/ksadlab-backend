@@ -1,20 +1,29 @@
 import { type Request, type Response } from 'express'
 import { COOKIE_EXPIRED } from '../../config/cookies'
+import { type UserType } from '../../typings/auth.types'
 import { compare, encript } from '../../utils/bcrypt'
 import { isProduction } from '../../utils/isProduction'
 import { generateAccessToken, generateRefreshToken, parseJWT, verifyRefreshToken } from '../../utils/jwt'
 import { tryCatch } from '../../utils/tryCatch'
-import { LoginSchema, RegisterSchema } from '../../validations/auth.validation'
+import { LoginSchema } from '../../validations/auth.validation'
 import { createUser, userLogin } from './auth.services'
 
 export const register = tryCatch(async (req: Request, res: Response) => {
-  const result = RegisterSchema.parse(req.body)
+  // const result = RegisterSchema.parse(req.body)
+  const result = req.body as UserType
 
-  const { email, password } = result
+  const { email, password, angkatan, level, nama, role } = result
   // encript password
   const hashedPassword = encript(password)
   // create user
-  const user = await createUser({ email, password: hashedPassword })
+  const user = await createUser({
+    email,
+    password: hashedPassword,
+    angkatan,
+    level,
+    nama,
+    role,
+  })
   // return response
   return res.status(201).json({
     error: null,

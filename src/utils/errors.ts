@@ -24,8 +24,8 @@ export const errorHandling = (err: Error, req: Request, res: Response, next: Nex
   logger.error(err)
   const message = err.message
   res.status(500).json({
-    error: message,
-    message: 'Internal Server Error',
+    error: 'Internal Server Error',
+    message,
     data: null,
   })
 }

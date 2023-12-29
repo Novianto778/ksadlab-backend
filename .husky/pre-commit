@@ -9,6 +9,7 @@ pnpm check-lint
 
 pnpm check-types
 
+
 pnpm build 
 
 echo 'pre-commit hook finished'
