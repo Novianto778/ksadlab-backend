@@ -7,9 +7,11 @@ type User = {
 }
 
 const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization
+  const cookies = req.cookies
+  const bearerToken = req.headers.authorization?.split(' ')[1]
+  if (!cookies?.jwt && !bearerToken) return res.status(401).json({ message: 'Unauthorized' })
 
-  const token = authHeader?.split(' ')[1]
+  const token = (cookies.jwt as string) || bearerToken
 
   if (token === undefined) {
     return res.status(401).json({
@@ -18,7 +20,24 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
       data: null,
     })
   }
-  jwt.verify(token, String(process.env.JWT_SECRET), (err, user) => {
+
+  if (bearerToken) {
+    jwt.verify(token, String(process.env.JWT_SECRET), (err, user) => {
+      if (err) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Token tidak valid',
+          data: null,
+        })
+      }
+
+      req.role = user ? (user as User).role : undefined
+      next()
+    })
+    return
+  }
+
+  jwt.verify(token, String(process.env.JWT_REFRESH_SECRET), (err, user) => {
     if (err) {
       return res.status(403).json({
         error: 'Forbidden',
@@ -26,6 +45,7 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
         data: null,
       })
     }
+
     req.role = user ? (user as User).role : undefined
     next()
   })

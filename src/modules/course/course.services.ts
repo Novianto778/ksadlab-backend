@@ -40,7 +40,8 @@ export const createCourse = async (payload: CourseInputType): Promise<CourseWith
 
 export const getAllCourse = async (obj?: PaginateParams): Promise<Paginate<CourseWithTypes>> => {
   // get all course with the types
-  const { page = 1, limit = 10 } = obj ?? {}
+  const { page = 1, limit = 10, sort = 'created_at', order = 'desc' } = obj ?? {}
+
   const data = await prisma.course.findMany({
     skip: (page - 1) * limit,
     take: limit,
@@ -51,6 +52,8 @@ export const getAllCourse = async (obj?: PaginateParams): Promise<Paginate<Cours
         },
       },
     },
+    // check if sort and order is not undefined
+    orderBy: sort && order ? { [sort]: order } : undefined,
   })
 
   const total = await prisma.course.count()
@@ -98,8 +101,6 @@ export const updateCourse = async (id: string, payload: CourseInputType): Promis
   if (!typesName.length) {
     throw new AppError(400, 'Course type not found', 'course_type_not_found')
   }
-
-  console.log(id, types)
 
   const data = await prisma.course.update({
     where: {

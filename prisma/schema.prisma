@@ -87,6 +87,7 @@ model Course {
   description     String
   level           Int               @db.SmallInt
   cover           String?           @db.VarChar(255)
+  created_at      DateTime?         @default(now()) @db.Timestamptz(6)
   course_module    CourseModule[]
   course_type CourseTypePivot[]
 }

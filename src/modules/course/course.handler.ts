@@ -3,6 +3,7 @@ import { type CourseInputType } from '../../typings/course.types'
 import { tryCatch } from '../../utils/tryCatch'
 import { createCourse, getAllCourse, getCourseById, updateCourse } from './course.services'
 
+import { validateQueryParams } from '../../utils/paginate'
 import { courseValidation } from '../../validations/course.validation'
 
 export const createNewCourse = tryCatch(async (req: Request, res: Response) => {
@@ -13,20 +14,18 @@ export const createNewCourse = tryCatch(async (req: Request, res: Response) => {
   const data = await createCourse(result)
   return res.status(201).json({
     error: null,
-    message: 'Create course success',
+    message: 'Create new course success',
     data,
   })
 })
 
 export const getCourses = tryCatch(async (req: Request, res: Response) => {
-  const { page, limit } = req.query
-  const data = await getAllCourse({
-    page: Number(page) || undefined,
-    limit: Number(limit) || undefined,
-  })
+  const params = validateQueryParams(req.query)
+
+  const data = await getAllCourse(params)
   return res.status(200).json({
     error: null,
-    message: 'Get all course success',
+    message: 'Get all courses success',
     data,
   })
 })

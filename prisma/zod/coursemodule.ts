@@ -1,15 +1,6 @@
-import * as z from 'zod'
-import * as imports from '../null'
-import {
-  CompleteAssignmentModule,
-  RelatedAssignmentModuleModel,
-  CompleteCourse,
-  RelatedCourseModel,
-  CompleteCourseProgress,
-  RelatedCourseProgressModel,
-  CompleteCourseSubmodule,
-  RelatedCourseSubmoduleModel,
-} from './index'
+import * as z from "zod"
+import * as imports from "../null"
+import { CompleteAssignmentModule, RelatedAssignmentModuleModel, CompleteCourse, RelatedCourseModel, CompleteCourseProgress, RelatedCourseProgressModel, CompleteCourseSubmodule, RelatedCourseSubmoduleModel } from "./index"
 
 export const CourseModuleModel = z.object({
   course_module_id: z.string(),
@@ -30,11 +21,9 @@ export interface CompleteCourseModule extends z.infer<typeof CourseModuleModel> 
  *
  * NOTE: Lazy required in case of potential circular dependencies within schema
  */
-export const RelatedCourseModuleModel: z.ZodSchema<CompleteCourseModule> = z.lazy(() =>
-  CourseModuleModel.extend({
-    assignment_module: RelatedAssignmentModuleModel.array(),
-    course: RelatedCourseModel,
-    course_progress: RelatedCourseProgressModel.array(),
-    course_submodule: RelatedCourseSubmoduleModel.array(),
-  }),
-)
+export const RelatedCourseModuleModel: z.ZodSchema<CompleteCourseModule> = z.lazy(() => CourseModuleModel.extend({
+  assignment_module: RelatedAssignmentModuleModel.array(),
+  course: RelatedCourseModel,
+  course_progress: RelatedCourseProgressModel.array(),
+  course_submodule: RelatedCourseSubmoduleModel.array(),
+}))

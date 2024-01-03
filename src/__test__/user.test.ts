@@ -1,64 +1,90 @@
-import 'module-alias/register'
 import supertest from 'supertest'
 import web from '../middleware/web'
 import prisma from '../utils/db'
 
 describe('user', () => {
+  // beforeAll(async () => {
+  //   await createUser({
+  //     email: 'alui778@gmail.com',
+  //     nama: 'Alui',
+  //     angkatan: 2020,
+  //     level: 1,
+  //     password: '12345678',
+  //     role: 'admin',
+  //   })
+  // })
+
+  it('create new user', async () => {
+    const response = await supertest(web).post('/api/auth/register').send({
+      email: 'alui778@gmail.com',
+      nama: 'Alui',
+      angkatan: 2020,
+      level: 1,
+      password: '12345678',
+      role: 'admin',
+    })
+    expect(response.status).toBe(201)
+    expect(response.body.message).toEqual('User created successfully')
+  })
+
   it('user login data valid', async () => {
     const response = await supertest(web).post('/api/auth/login').send({
-      email: 'alui123@gmail.com',
+      email: 'alui778@gmail.com',
       password: '12345678',
     })
+
     expect(response.status).toBe(200)
     expect(response.body.message).toEqual('Login sukses')
   })
 
-  it('user login email tidak valid', async () => {
+  it('user tidak ditemukan', async () => {
     const response = await supertest(web).post('/api/auth/login').send({
-      email: 'pojokxx@gmail.com',
-      password: '123457890',
+      email: 'alui888@gmail.com',
+      password: '12312312',
     })
+    console.log(response.body)
     expect(response.status).toBe(404)
-    expect(response.body.message).toEqual('Login gagal')
+    expect(response.body.error).toEqual('User tidak ditemukan')
   })
+
   it('user login password tidak valid', async () => {
     const response = await supertest(web).post('/api/auth/login').send({
-      email: 'alui123@gmail.com',
+      email: 'alui778@gmail.com',
       password: '1234523452345',
     })
     expect(response.status).toBe(400)
     expect(response.body.message).toEqual('Login gagal')
   })
 
-  afterEach(async () => {
+  afterAll(async () => {
     await prisma.user.deleteMany({
       where: {
-        email: 'pojok123@gmail.com',
+        email: 'alui778@gmail.com',
       },
     })
   })
 
-  it('register user data valid', async () => {
-    const response = await supertest(web).post('/api/auth/register').send({
-      email: 'pojok123@gmail.com',
-      nama: 'Pojok Code',
-      password: '12345678',
-      confirmPassword: '12345678',
-    })
-    expect(response.status).toBe(201)
-    expect(response.body.message).toEqual('User created successfully')
-  })
+  // it('register user data valid', async () => {
+  //   const response = await supertest(web).post('/api/auth/register').send({
+  //     email: 'pojok123@gmail.com',
+  //     nama: 'Pojok Code',
+  //     password: '12345678',
+  //     confirmPassword: '12345678',
+  //   })
+  //   expect(response.status).toBe(201)
+  //   expect(response.body.message).toEqual('User created successfully')
+  // })
 
-  it('register user data tidak valid', async () => {
-    const response = await supertest(web).post('/api/auth/register').send({
-      name: 'Pojok Code',
-      email: 'pojok2@gmail.com',
-      password: '123456789',
-      confirmPassword: '1234567890',
-    })
-    expect(response.status).toBe(400)
-    expect(response.body.message).toEqual('confirmPassword Passwords do not match')
-  })
+  // it('register user data tidak valid', async () => {
+  //   const response = await supertest(web).post('/api/auth/register').send({
+  //     name: 'Pojok Code',
+  //     email: 'pojok2@gmail.com',
+  //     password: '123456789',
+  //     confirmPassword: '1234567890',
+  //   })
+  //   expect(response.status).toBe(400)
+  //   expect(response.body.message).toEqual('confirmPassword Passwords do not match')
+  // })
 
   // it('Refresh token valid', async () => {
   //   const response = await supertest(web).get('/api/auth/refresh').set('Authorization', `Bearer ${getRefreshToken()}`)

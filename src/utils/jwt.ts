@@ -9,14 +9,14 @@ const generateAccessToken = (user: UserType): string => {
 }
 
 const generateRefreshToken = (user: UserType): string => {
-  return jsonWebToken.sign(user, String(process.env.JWT_REFRESH_SCREET), {
+  return jsonWebToken.sign(user, String(process.env.JWT_REFRESH_SECRET), {
     expiresIn: process.env.JWT_REFRESH_EXPIRES_IN != null ? String(process.env.JWT_REFRESH_EXPIRES_IN) : '1800s',
   })
 }
 
 const verifyRefreshToken = (token: string): string | null | JwtPayload => {
   try {
-    return jsonWebToken.verify(token, String(process.env.JWT_REFRESH_SCREET))
+    return jsonWebToken.verify(token, String(process.env.JWT_REFRESH_SECRET))
   } catch (error) {
     return null
   }

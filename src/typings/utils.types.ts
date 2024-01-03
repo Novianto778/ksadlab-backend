@@ -8,4 +8,8 @@ export type Paginate<T> = {
 export type PaginateParams = {
   page?: number
   limit?: number
+  sort?: string
+  order?: Order
 }
+
+export type Order = 'asc' | 'desc'
