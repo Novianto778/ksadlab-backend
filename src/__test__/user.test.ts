@@ -42,7 +42,6 @@ describe('user', () => {
       email: 'alui888@gmail.com',
       password: '12312312',
     })
-    console.log(response.body)
     expect(response.status).toBe(404)
     expect(response.body.error).toEqual('User tidak ditemukan')
   })

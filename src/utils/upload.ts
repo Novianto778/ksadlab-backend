@@ -13,7 +13,5 @@ export const upload = async (file: any) => {
     use_filename: true,
   })
 
-  console.log(result)
-
   return result
 }

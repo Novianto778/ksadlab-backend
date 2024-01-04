@@ -3,6 +3,8 @@
 
 echo 'Running pre-commit hook'
 
+pnpm format
+
 pnpm check-format
 
 pnpm check-lint

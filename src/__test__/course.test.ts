@@ -18,12 +18,6 @@ describe('course', () => {
     expect(response.body.message).toEqual('Get all courses success')
   })
 
-  // it('get course detail', async () => {
-  //   const response = await supertest(web).get('/api/courses/1')
-  //   expect(response.status).toBe(200)
-  //   expect(response.body.message).toEqual('Get course detail success')
-  // })
-
   it('create new course', async () => {
     const response = await supertest(web)
       .post('/api/courses')
@@ -41,18 +35,27 @@ describe('course', () => {
     expect(response.body.message).toEqual('Create new course success')
   })
 
-  // it('update course', async () => {
-  //   const response = await supertest(web)
-  //     .put('/api/courses/1')
-  //     .send({
-  //       title: 'Test Course 2 Updated',
-  //       description: 'Belajar pemrograman',
-  //       level: 1,
-  //       types: [1],
-  //     })
-  //   expect(response.status).toBe(200)
-  //   expect(response.body.message).toEqual('Update course success')
-  // })
+  it('get course detail', async () => {
+    const response = await supertest(web)
+      .get('/api/courses/' + courseId)
+      .set('authorization', `Bearer ${token}`)
+    expect(response.status).toBe(200)
+    expect(response.body.message).toEqual('Get course detail success')
+  })
+
+  it('update course', async () => {
+    const response = await supertest(web)
+      .put('/api/courses/' + courseId)
+      .send({
+        title: 'Test Course 2 Updated',
+        description: 'Belajar pemrograman',
+        level: 1,
+        types: [1],
+      })
+      .set('authorization', `Bearer ${token}`)
+    expect(response.status).toBe(200)
+    expect(response.body.message).toEqual('Update course success')
+  })
 
   afterAll(async () => {
     await prisma.$transaction([
