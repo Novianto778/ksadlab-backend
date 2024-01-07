@@ -3,16 +3,13 @@
 
 echo 'Running pre-commit hook'
 
-pnpm test
-
-pnpm format
-
 pnpm check-format
 
 pnpm check-lint
 
 pnpm check-types
 
+pnpm test
 
 pnpm build 
 
