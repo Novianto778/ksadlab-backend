@@ -111,3 +111,12 @@ export const refreshToken = tryCatch(async (req: Request, res: Response) => {
     refreshToken: newRefreshToken,
   })
 })
+
+export const logout = tryCatch(async (req: Request, res: Response) => {
+  res.clearCookie('jwt')
+  return res.status(200).json({
+    error: null,
+    message: 'Logout sukses',
+    data: null,
+  })
+})

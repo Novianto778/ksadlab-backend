@@ -28,3 +28,15 @@ export type CourseWithModuleSubmodule = Prisma.CourseGetPayload<{
     }
   }
 }>
+
+export type CreateCourseModuleAndSubmodulePayload = Array<
+  Prisma.CourseModuleCreateInput & {
+    course_submodule?: Prisma.CourseSubmoduleCreateInput[]
+  }
+>
+
+export type UpdateCourseModuleAndSubmodulePayload = Array<
+  Prisma.CourseModuleUpdateInput & {
+    course_submodule?: Prisma.CourseSubmoduleUncheckedUpdateInput[]
+  }
+>

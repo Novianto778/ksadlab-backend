@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 
 type User = {
   role: string
+  user_id: string
 }
 
 const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
@@ -32,6 +33,7 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
       }
 
       req.role = user ? (user as User).role : undefined
+      req.userId = user ? (user as User).user_id : undefined
       next()
     })
     return
@@ -47,6 +49,7 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
     }
 
     req.role = user ? (user as User).role : undefined
+    req.userId = user ? (user as User).user_id : undefined
     next()
   })
 }

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Course" ADD COLUMN     "price" SMALLINT NOT NULL DEFAULT 0;

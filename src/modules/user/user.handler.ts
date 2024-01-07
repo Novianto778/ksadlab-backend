@@ -3,6 +3,13 @@ import { tryCatch } from '../../utils/tryCatch'
 import { getAllUsers, getCurrentUserSession } from './user.services'
 
 export const getUserSession = tryCatch(async (req: Request, res: Response) => {
+  if (!req.userId) {
+    return res.status(404).json({
+      error: 'Not Found',
+      message: 'User not found',
+      data: null,
+    })
+  }
   const result = await getCurrentUserSession(req)
 
   return res.status(200).json({

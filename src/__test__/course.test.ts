@@ -3,14 +3,26 @@ import web from '../middleware/web'
 import prisma from '../utils/db'
 let token = ''
 let courseId = ''
-describe('course', () => {
+let userId = ''
+let userId2 = ''
+let token2 = ''
+describe('course - admin role', () => {
   beforeAll(async () => {
+    await supertest(web).post('/api/auth/register').send({
+      email: 'admin7778@gmail.com',
+      nama: 'Admin',
+      angkatan: 2020,
+      level: 1,
+      password: '12345678',
+      role: 'admin',
+    })
     const res = await supertest(web).post('/api/auth/login').send({
-      email: 'admin123@gmail.com',
+      email: 'admin7778@gmail.com',
       password: '12345678',
     })
 
     token = res.body.accessToken
+    userId = res.body.data.user_id
   })
   it('get all courses', async () => {
     const response = await supertest(web).get('/api/courses').set('authorization', `Bearer ${token}`)
@@ -53,8 +65,50 @@ describe('course', () => {
         types: [1],
       })
       .set('authorization', `Bearer ${token}`)
+
     expect(response.status).toBe(200)
     expect(response.body.message).toEqual('Update course success')
+  })
+
+  afterAll(async () => {
+    await supertest(web).get('/api/auth/logout').set('authorization', `Bearer ${token}`)
+    await prisma.user.delete({
+      where: {
+        user_id: userId,
+      },
+    })
+  })
+})
+
+describe('course - student role', () => {
+  beforeAll(async () => {
+    await supertest(web).post('/api/auth/register').send({
+      email: 'student123@gmail.com',
+      nama: 'student123',
+      angkatan: 2020,
+      level: 1,
+      password: '12345678',
+      role: 'student',
+    })
+    const res = await supertest(web).post('/api/auth/login').send({
+      email: 'student123@gmail.com',
+      password: '12345678',
+    })
+
+    token2 = res.body.accessToken
+
+    userId2 = res.body.data.user_id
+  })
+
+  it('join course', async () => {
+    const response = await supertest(web).post(`/api/courses/${courseId}/join`).set('authorization', `Bearer ${token2}`)
+
+    const user = await supertest(web).get('/api/users/session').set('authorization', `Bearer ${token2}`)
+
+    console.log(user)
+
+    expect(response.status).toBe(200)
+    expect(response.body.message).toEqual('Join course success')
   })
 
   afterAll(async () => {
@@ -65,6 +119,23 @@ describe('course', () => {
         },
       }),
       prisma.course.delete({ where: { course_id: courseId } }),
+      prisma.courseProgress.deleteMany({
+        where: {
+          AND: [
+            {
+              course_id: courseId,
+            },
+            {
+              user_id: userId2,
+            },
+          ],
+        },
+      }),
+      prisma.user.delete({
+        where: {
+          user_id: userId2,
+        },
+      }),
     ])
   })
 })

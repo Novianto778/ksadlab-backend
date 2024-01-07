@@ -1,4 +1,12 @@
-import { type CourseInputType, type CourseWithModuleSubmodule, type CourseWithTypePayload, type CourseWithTypes } from '../../typings/course.types'
+import { type CourseType } from '@prisma/client'
+import {
+  type CourseInputType,
+  type CourseWithModuleSubmodule,
+  type CourseWithTypePayload,
+  type CourseWithTypes,
+  type CreateCourseModuleAndSubmodulePayload,
+  type UpdateCourseModuleAndSubmodulePayload,
+} from '../../typings/course.types'
 import { type Paginate, type PaginateParams } from '../../typings/utils.types'
 import prisma from '../../utils/db'
 import { AppError } from '../../utils/errors'
@@ -123,4 +131,149 @@ export const updateCourse = async (id: string, payload: CourseInputType): Promis
     ...data,
     types: typesName,
   }
+}
+
+export const createCourseType = async (name: string): Promise<CourseType> => {
+  const data = await prisma.courseType.create({
+    data: {
+      name,
+    },
+  })
+
+  return data
+}
+
+export const hasJoin = async (userId: string, courseId: string) => {
+  const userCourse = await prisma.courseProgress.findFirst({
+    where: {
+      AND: [
+        {
+          user_id: userId,
+        },
+        {
+          course_id: courseId,
+        },
+      ],
+    },
+  })
+
+  if (!userCourse) {
+    return false
+  }
+
+  return true
+}
+
+export const joinCourse = async (userId: string, courseId: string) => {
+  const userCourse = await prisma.courseProgress.create({
+    data: {
+      user_id: userId,
+      course_id: courseId,
+    },
+  })
+
+  if (!userCourse) {
+    return null
+  }
+
+  return userCourse
+}
+
+export const isCourseExist = async (courseId: string) => {
+  const course = await prisma.course.findUnique({
+    where: {
+      course_id: courseId,
+    },
+  })
+
+  if (!course) {
+    return false
+  }
+
+  return true
+}
+
+export const createCourseModuleAndSubmodule = async (courseId: string, payload: CreateCourseModuleAndSubmodulePayload) => {
+  await prisma.$transaction(async (prisma) => {
+    for (const moduleData of payload) {
+      const { course_submodule, ...courseModuleData } = moduleData
+
+      const createdModule = await prisma.courseModule.create({
+        data: courseModuleData,
+      })
+
+      if (course_submodule && course_submodule.length > 0) {
+        await prisma.courseSubmodule.createMany({
+          data: course_submodule.map((submodule) => ({
+            ...submodule,
+            course_module_id: createdModule.course_module_id,
+          })),
+        })
+      }
+    }
+  })
+
+  const result = await prisma.course.findUnique({
+    where: {
+      course_id: courseId,
+    },
+    include: {
+      course_module: {
+        include: {
+          course_submodule: true,
+        },
+      },
+    },
+  })
+
+  return result
+}
+
+export const updateCourseModuleAndSubmodule = async (courseId: string, payload: UpdateCourseModuleAndSubmodulePayload) => {
+  await prisma.$transaction(async (prisma) => {
+    for (const moduleData of payload) {
+      const { course_submodule, ...courseModuleData } = moduleData
+
+      await prisma.courseModule.update({
+        where: {
+          course_module_id: courseModuleData.course_module_id as string,
+        },
+        data: courseModuleData,
+      })
+
+      if (course_submodule && course_submodule.length > 0) {
+        await Promise.all(
+          course_submodule.map(
+            async (submodule) =>
+              await prisma.courseSubmodule.update({
+                where: {
+                  course_submodule_id: submodule.course_submodule_id as string,
+                },
+                data: {
+                  submodule_title: submodule.submodule_title,
+                  order_level: submodule.order_level,
+                  submodule_url: submodule.submodule_url,
+                  submodule_type: submodule.submodule_type,
+                },
+              }),
+          ),
+        )
+      }
+    }
+  })
+
+  const result = await prisma.course.findUnique({
+    where: {
+      course_id: courseId,
+    },
+    include: {
+      course_module: {
+        include: {
+          course_submodule: true,
+        },
+      },
+    },
+  })
+
+  return result
 }
