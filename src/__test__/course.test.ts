@@ -103,10 +103,6 @@ describe('course - student role', () => {
   it('join course', async () => {
     const response = await supertest(web).post(`/api/courses/${courseId}/join`).set('authorization', `Bearer ${token2}`)
 
-    const user = await supertest(web).get('/api/users/session').set('authorization', `Bearer ${token2}`)
-
-    console.log(user)
-
     expect(response.status).toBe(200)
     expect(response.body.message).toEqual('Join course success')
   })

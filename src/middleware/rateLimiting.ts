@@ -1,8 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express'
-import Redis from 'ioredis'
 import moment from 'moment'
+import redisClient from '../libs/redis'
 import { AppError } from '../utils/errors'
-const redisClient = new Redis({ host: 'localhost', port: 6379 })
 
 const RATELIMIT_DURATION_IN_SECONDS = 60
 const NUMBER_OF_REQUEST_ALLOWED = 5
@@ -10,8 +9,6 @@ const NUMBER_OF_REQUEST_ALLOWED = 5
 const rateLimiting = async (req: Request, res: Response, next: NextFunction) => {
   const userIp = req.ip
   const currentTime = moment().unix()
-
-  console.log(userIp)
 
   if (!userIp) {
     next()
