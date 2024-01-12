@@ -15,8 +15,8 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
   const token = (cookies.jwt as string) || bearerToken
 
   if (token === undefined) {
-    return res.status(401).json({
-      error: 'Unauthorized',
+    return res.status(403).json({
+      error: 'Forbidden',
       message: 'Verifikasi token gagal',
       data: null,
     })
@@ -25,8 +25,8 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
   if (bearerToken) {
     jwt.verify(token, String(process.env.JWT_SECRET), (err, user) => {
       if (err) {
-        return res.status(403).json({
-          error: 'Forbidden',
+        return res.status(401).json({
+          error: 'Unauthorized',
           message: 'Token tidak valid',
           data: null,
         })
@@ -36,22 +36,21 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
       req.userId = user ? (user as User).user_id : undefined
       next()
     })
-    return
   }
 
-  jwt.verify(token, String(process.env.JWT_REFRESH_SECRET), (err, user) => {
-    if (err) {
-      return res.status(403).json({
-        error: 'Forbidden',
-        message: 'Token tidak valid',
-        data: null,
-      })
-    }
+  // jwt.verify(token, String(process.env.JWT_REFRESH_SECRET), (err, user) => {
+  //   if (err) {
+  //     return res.status(403).json({
+  //       error: 'Forbidden',
+  //       message: 'Token tidak valid',
+  //       data: null,
+  //     })
+  //   }
 
-    req.role = user ? (user as User).role : undefined
-    req.userId = user ? (user as User).user_id : undefined
-    next()
-  })
+  //   req.role = user ? (user as User).role : undefined
+  //   req.userId = user ? (user as User).user_id : undefined
+  //   next()
+  // })
 }
 
 export default verifyJWT

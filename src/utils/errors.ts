@@ -21,8 +21,17 @@ export const errorHandling = (err: Error, req: Request, res: Response, next: Nex
     })
   }
 
+  if (err instanceof AppError) {
+    return res.status(err.errorCode).json({
+      message: err.message,
+      error: err.statusCode,
+      data: null,
+    })
+  }
+
   logger.error(err)
   const message = err.message
+
   res.status(500).json({
     error: 'Internal Server Error',
     message,

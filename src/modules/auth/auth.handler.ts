@@ -2,7 +2,6 @@ import { type Request, type Response } from 'express'
 import { COOKIE_EXPIRED } from '../../config/cookies'
 import { type UserType } from '../../typings/auth.types'
 import { compare, encript } from '../../utils/bcrypt'
-import { isProduction } from '../../utils/isProduction'
 import { generateAccessToken, generateRefreshToken, parseJWT, verifyRefreshToken } from '../../utils/jwt'
 import { tryCatch } from '../../utils/tryCatch'
 import { LoginSchema } from '../../validations/auth.validation'
@@ -57,7 +56,7 @@ export const login = tryCatch(async (req: Request, res: Response) => {
   const refreshToken = generateRefreshToken(user)
   res.cookie('jwt', refreshToken, {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: 'none',
     maxAge: COOKIE_EXPIRED,
   })
@@ -72,9 +71,11 @@ export const login = tryCatch(async (req: Request, res: Response) => {
 
 export const refreshToken = tryCatch(async (req: Request, res: Response) => {
   const cookies = req.cookies
-  if (!cookies?.jwt) return res.status(401).json({ message: 'Unauthorized' })
+  const { refresh } = req.body
+  if (!cookies?.jwt && !refresh) return res.status(401).json({ message: 'Unauthorized' })
 
-  const refreshToken = cookies.jwt
+  const refreshToken = cookies.jwt ?? refresh
+
   const verify = verifyRefreshToken(refreshToken)
   if (verify === null) {
     return res.status(401).json({
@@ -98,7 +99,7 @@ export const refreshToken = tryCatch(async (req: Request, res: Response) => {
 
   res.cookie('jwt', newRefreshToken, {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: 'none',
     maxAge: COOKIE_EXPIRED,
   })
